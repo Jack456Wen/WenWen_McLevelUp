@@ -1,0 +1,16 @@
+[dimensions]
+netherMaxMultiplier = 3.0
+endMaxMultiplier = 5.0
+# 护甲为随机基础值上限。
+netherMaxArmor = 8.0
+endMaxArmor = 8.0
+# 速度独立抽取倍率，1.25 表示随机增幅 0～25%。
+netherMaxSpeedMultiplier = 1.25
+endMaxSpeedMultiplier = 1.25
+
+[rewards]
+experienceMultiplier = 1.0
+maxExperiencePerMob = 10000
+
+[specialDays]
+enabled = true

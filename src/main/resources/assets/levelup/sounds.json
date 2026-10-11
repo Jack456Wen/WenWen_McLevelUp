@@ -1,0 +1,37 @@
+{
+  "music.level1": {
+    "sounds": [
+      {"name": "levelup:music/level1", "stream": true}
+    ]
+  },
+    "music.level2": {
+    "sounds": [
+      {"name": "levelup:music/level2", "stream": true}
+    ]
+  },
+    "music.level3": {
+    "sounds": [
+      {"name": "levelup:music/level3", "stream": true}
+    ]
+  },
+    "music.level4": {
+    "sounds": [
+      {"name": "levelup:music/level4", "stream": true}
+    ]
+  },
+    "music.level5": {
+    "sounds": [
+      {"name": "levelup:music/level5", "stream": true}
+    ]
+  },
+    "music.level6": {
+    "sounds": [
+      {"name": "levelup:music/level6", "stream": true}
+    ]
+  },
+    "music.level7": {
+    "sounds": [
+      {"name": "levelup:music/level7", "stream": true}
+    ]
+  }
+}

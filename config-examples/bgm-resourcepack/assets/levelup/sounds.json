@@ -1,0 +1,7 @@
+{
+  "music.blood_moon": {
+    "sounds": [
+      {"name": "levelup:music/blood_moon", "stream": true}
+    ]
+  }
+}

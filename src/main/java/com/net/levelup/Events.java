@@ -34,11 +34,15 @@ public final class Events {
     private final ServerBossEvent bar = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
     private long observedDay = Long.MIN_VALUE;
     private Rules.Day active;
+    private final DailyEvents dailyEvents = new DailyEvents();
+    private EventHistory eventHistory;
     private final java.util.Map<ServerPlayer, Long> bgmNextPlayback = new java.util.HashMap<>();
     /** 已经提醒过「客户端没有本模组通道」的玩家，避免每秒刷日志。 */
     private final java.util.Set<ServerPlayer> bgmUnsupported = new java.util.HashSet<>();
 
     @SubscribeEvent public void start(ServerAboutToStartEvent event) {
+        dailyEvents.clear();
+        eventHistory = null;
         observedDay = Long.MIN_VALUE;
         active = null;
         bgmNextPlayback.clear();
@@ -51,6 +55,8 @@ public final class Events {
         catch (Exception e) { LevelUp.LOGGER.error("Cannot load levelup JSON; retaining previous valid rules", e); return false; }
     }
     @SubscribeEvent public void stop(ServerStoppedEvent event) {
+        dailyEvents.clear();
+        eventHistory = null;
         bar.removeAllPlayers();
         bgmNextPlayback.clear();
         bgmUnsupported.clear();
@@ -87,7 +93,7 @@ public final class Events {
         CompoundTag record = new CompoundTag();
         data.put(TAG, record);
         if (event.loadedFromDisk()) return;
-        Rules.Day day = level.dimension().equals(Level.OVERWORLD) ? Rules.day(level.getDayTime()) : null;
+        Rules.Day day = level.dimension().equals(Level.OVERWORLD) ? today(level) : null;
         boolean nether = level.dimension().equals(Level.NETHER);
         boolean end = level.dimension().equals(Level.END);
         double max = nether ? Settings.NETHER.get() : end ? Settings.END.get() : 1;
@@ -162,6 +168,10 @@ public final class Events {
         if (record.contains("strength")) event.setDroppedExperience(BalanceMath.experience(
             event.getDroppedExperience(), record.getDouble("strength"), Settings.XP.get(), eventMultiplier, Settings.XP_CAP.get()));
     }
+    private Rules.Day today(ServerLevel level) {
+        if (eventHistory == null) eventHistory = EventHistory.get(level);
+        return dailyEvents.get(Rules.current, BalanceMath.day(level.getDayTime()), level.getSeed(), Settings.DAYS.get(), eventHistory);
+    }
     @SubscribeEvent public void tick(TickEvent.LevelTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)
             || !level.dimension().equals(Level.OVERWORLD)) return;
@@ -170,7 +180,7 @@ public final class Events {
         MinecraftServer server = level.getServer();
         long time = level.getDayTime();
         long day = BalanceMath.day(time);
-        Rules.Day next = Rules.day(time);
+        Rules.Day next = today(level);
         if (day != observedDay || !java.util.Objects.equals(active, next)) {
             if (active != null) for (ServerPlayer player : server.getPlayerList().getPlayers()) active.bgm().stop(player);
             bgmNextPlayback.clear();

@@ -14,11 +14,13 @@ import java.util.*;
 
 /** JSON is read only on server start or explicit reload, never per entity/tick. */
 public final class Rules {
-    public record Day(long day, int repeatEvery, String title, String announcement,
+    public record Day(long day, double probability, boolean repeatable, String title, String announcement,
                       double health, double attack, double speed, double armor, String loot, double experienceMultiplier,
                       List<AttackEffects.Entry> attackEffects, List<AttackEffects.Entry> playerEffects, EventBgm bgm) {
-        public boolean matches(long current) {
-            return BalanceMath.matches(current, day, repeatEvery);
+        // Stable across reordering and changes to probability/effects; these three fields identify an event.
+        String historyKey() {
+            return UUID.nameUUIDFromBytes((day + "\u0000" + title + "\u0000" + loot)
+                .getBytes(StandardCharsets.UTF_8)).toString();
         }
     }
     public record Entry(Item item, int count, double weight, double rarity, double minimumStrength) {}
@@ -29,7 +31,7 @@ public final class Rules {
         Path dir = directory();
         Files.createDirectories(dir);
         createDefault(dir.resolve("days.json"), """
-            {"days":[{"day":7,"repeatEvery":7,"title":"文文","announcement":"文本文本！","healthMultiplier":3,"attackMultiplier":2,"speedMultiplier":1.3,"armor":8,"lootTable":"blood_moon","experienceMultiplier":1,"attackEffects":[],"playerEffects":[],"bgm":"","bgmVolume":1,"bgmDurationSeconds":180}]}
+            {"days":[{"day":7,"probability":0.15,"repeatable":true,"title":"文文","announcement":"文本文本！","healthMultiplier":3,"attackMultiplier":2,"speedMultiplier":1.3,"armor":8,"lootTable":"wenwen","experienceMultiplier":1,"attackEffects":[],"playerEffects":[],"bgm":"","bgmVolume":1,"bgmDurationSeconds":180}]}
             """);
         createDefault(dir.resolve("loot.json"), """
             {"tables":{
@@ -75,7 +77,7 @@ public final class Rules {
             JsonObject d = element.getAsJsonObject();
             String table = d.get("lootTable").getAsString();
             if (!tables.containsKey(table)) throw new IllegalArgumentException("Missing loot table: " + table);
-            days.add(new Day(integer(d,"day",1,1,Integer.MAX_VALUE), integer(d,"repeatEvery",0,0,Integer.MAX_VALUE),
+            days.add(new Day(integer(d,"day",1,1,Integer.MAX_VALUE), probability(d), repeatable(d),
                 d.get("title").getAsString(), d.get("announcement").getAsString(),
                 number(d,"healthMultiplier",1,1,100), number(d,"attackMultiplier",1,1,100),
                 number(d,"speedMultiplier",1,1,100), number(d,"armor",0,0,1000), table,
@@ -83,11 +85,18 @@ public final class Rules {
         }
         current = new Snapshot(List.copyOf(days), Map.copyOf(tables));
     }
-    public static Day day(long time) {
-        if (!Settings.DAYS.get()) return null;
-        long day = BalanceMath.day(time);
-        for (Day rule : current.days) if (rule.matches(day)) return rule;
-        return null;
+    static boolean repeatable(JsonObject day) {
+        if (!day.has("repeatable")) return true;
+        JsonElement value = day.get("repeatable");
+        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isBoolean())
+            throw new IllegalArgumentException("repeatable must be true or false");
+        return value.getAsBoolean();
+    }
+    static double probability(JsonObject day) {
+        if (day.has("repeatEvery"))
+            throw new IllegalArgumentException("repeatEvery is no longer supported; replace it with probability (0 to 1)");
+        if (!day.has("probability")) throw new IllegalArgumentException("Missing probability (0 to 1)");
+        return number(day, "probability", 0, 0, 1);
     }
     public static ItemStack roll(String table, double strength, RandomSource random) {
         List<Entry> entries = current.tables.get(table);

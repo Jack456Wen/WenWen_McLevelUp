@@ -2,7 +2,8 @@
     "days": [
         {
             "day": 5, 
-            "repeatEvery": 30, 
+            "probability": 0.03333333333333333,
+            "repeatable": true,
             "title": "§2冒险", 
             "announcement": "§2怪物血量小幅度提升！玩家获得温度免疫效果！(随机掉落生存物资)", 
             "healthMultiplier": 5, 
@@ -19,7 +20,8 @@
         },
         {
             "day": 6, 
-            "repeatEvery": 30, 
+            "probability": 0.03333333333333333,
+            "repeatable": true,
             "title": "§2生命", 
             "announcement": "§2怪物攻击小幅度提升！玩家获得补水效果！(随机掉落背包)", 
             "healthMultiplier": 4, 
@@ -36,7 +38,8 @@
         },
         {
             "day": 10, 
-            "repeatEvery": 30, 
+            "probability": 0.03333333333333333,
+            "repeatable": true,
             "title": "§2生机", 
             "announcement": "§2怪物血量大幅度提升！玩家回血速度翻倍！(随机掉落附魔食物)", 
             "healthMultiplier": 100, 
@@ -53,7 +56,8 @@
         },
         {
             "day": 20, 
-            "repeatEvery": 30, 
+            "probability": 0.03333333333333333,
+            "repeatable": true,
             "title": "流光", 
             "announcement": "击杀怪物有机会掉落稀有战利品，怪物攻击力和护甲大幅度提升", 
             "healthMultiplier": 5, 
@@ -70,7 +74,8 @@
         },
         {
             "day": 50, 
-            "repeatEvery": 30, 
+            "probability": 0.03333333333333333,
+            "repeatable": true,
             "title": "§4复仇", 
             "announcement": "§4怪物攻击力大幅度提升，所有玩家获得标记效果！（随机掉落图腾）", 
             "healthMultiplier": 5, 
@@ -87,7 +92,8 @@
         },
         {
             "day": 22, 
-            "repeatEvery": 30, 
+            "probability": 0.03333333333333333,
+            "repeatable": true,
             "title": "§5惊奇", 
             "announcement": "§5怪物攻击附带幻觉效果！（随机掉落饰品）", 
             "healthMultiplier": 10, 
@@ -104,7 +110,8 @@
         },
         {
             "day": 55, 
-            "repeatEvery": 20, 
+            "probability": 0.05,
+            "repeatable": true,
             "title": "§4血月", 
             "announcement": "§4怪物攻击附带斩杀效果！(随机掉落戒指)", 
             "healthMultiplier": 50, 
@@ -121,7 +128,8 @@
         },
         {
             "day": 62, 
-            "repeatEvery": 20, 
+            "probability": 0.05,
+            "repeatable": true,
             "title": "§4狂暴", 
             "announcement": "§4怪物进入狂暴状态，怪物攻击力和血量大幅度提升（额外掉落饰品）", 
             "healthMultiplier": 40, 
@@ -138,7 +146,8 @@
         },
         {
             "day": 77, 
-            "repeatEvery": 20, 
+            "probability": 0.05,
+            "repeatable": true,
             "title": "黑暗来临", 
             "announcement": "怪物所有属性大幅度提升！玩家获得沉默效果！（随机掉落生存物资）", 
             "healthMultiplier": 30, 
@@ -155,7 +164,8 @@
         },
         {
             "day": 14, 
-            "repeatEvery": 20, 
+            "probability": 0.05,
+            "repeatable": true,
             "title": "§2绿雾来临", 
             "announcement": "§2怪物所有属性大幅度提升！玩家恢复速度大幅度降低！(随机掉落背包物品)", 
             "healthMultiplier": 30, 
@@ -172,7 +182,8 @@
         },
         {
             "day": 16, 
-            "repeatEvery": 20, 
+            "probability": 0.05,
+            "repeatable": true,
             "title": "§2能量涌动", 
             "announcement": "§2怪物速度提高100%，掉落经验大幅度提升！", 
             "healthMultiplier": 2, 
@@ -189,7 +200,8 @@
         },
         {
             "day": 76, 
-            "repeatEvery": 60, 
+            "probability": 0.016666666666666666,
+            "repeatable": true,
             "title": "§5海灵侵扰", 
             "announcement": "§5怪物护甲大幅度提高，有概率掉落贝壳号角！", 
             "healthMultiplier": 5, 

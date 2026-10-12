@@ -80,7 +80,7 @@ final class DailyEventCheck {
 
     private static Rules.Day event(long day, double probability, String title) {
         return new Rules.Day(day, probability, true, title, title, 1, 1, 1, 0, "wenwen", 1,
-            List.of(), List.of(), new EventBgm(null, 1, 180));
+            List.of(), List.of(), new EventBgm(null, 1, 180), net.minecraft.world.BossEvent.BossBarColor.RED, true);
     }
     private static com.google.gson.JsonObject json(String text) {
         return JsonParser.parseString(text).getAsJsonObject();

@@ -1,0 +1,4 @@
+{
+  "config.jade.plugin_levelup.event_name": "Empowerment event name",
+  "levelup.jade.event": "Empowerment: %s"
+}

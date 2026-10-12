@@ -15,7 +15,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
  * 仍然使用原版声音封包方案（见 {@link EventBgm}）。
  */
 final class Network {
-    private static final String VERSION = "1";
+    private static final String VERSION = "2";
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
         .named(new ResourceLocation(LevelUp.ID, "music"))
         .networkProtocolVersion(() -> VERSION)
@@ -35,6 +35,10 @@ final class Network {
             .add();
         // 客户端专用逻辑：DistExecutor 只在物理客户端加载 ClientBgm，专用服务端不会碰到这个类。
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientBgm::register);
+        CHANNEL.messageBuilder(MobVisualMessage.class, 1, NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(MobVisualMessage::write).decoder(MobVisualMessage::read)
+            .consumerMainThread(MobVisualMessage::handle).add();
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientMobVisuals::register);
     }
     /** 该玩家的客户端装了本模组、并协商出了这条通道时，音乐可以交给客户端精确控制。 */
     static boolean controlsMusic(ServerPlayer player) {
@@ -45,5 +49,10 @@ final class Network {
     }
     static void stop(ServerPlayer player) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), BgmMessage.STOP);
+    }
+    static void visual(ServerPlayer player, net.minecraft.world.entity.Mob mob, net.minecraft.nbt.CompoundTag data) {
+        if (controlsMusic(player)) CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+            new MobVisualMessage(mob.getId(), mob.getUUID(), data.getString("eventName"),
+                data.getInt("eventColor"), data.getBoolean("mobParticles")));
     }
 }

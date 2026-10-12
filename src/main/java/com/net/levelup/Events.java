@@ -120,7 +120,17 @@ public final class Events {
         // Snapshot the event's multiplier so surviving mobs keep it across days and reloads.
         record.putDouble("experienceMultiplier", day == null ? 1 : day.experienceMultiplier());
         record.putString("loot", day == null ? "dimension" : day.loot());
-        if (day != null) AttackEffects.save(mob, record, day.attackEffects());
+        if (day != null) {
+            AttackEffects.save(mob, record, day.attackEffects());
+            record.putString("eventName", day.title());
+            record.putInt("eventColor", MobVisualMessage.color(day.bossBarColor()));
+            record.putBoolean("mobParticles", day.mobParticles());
+        }
+    }
+    @SubscribeEvent public void tracking(PlayerEvent.StartTracking event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getTarget() instanceof Mob mob)) return;
+        CompoundTag record = mob.getPersistentData().getCompound(TAG);
+        if (record.contains("eventName")) Network.visual(player, mob, record);
     }
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void attackEffects(LivingDamageEvent event) {
@@ -190,6 +200,7 @@ public final class Events {
         }
         if (active == null) { bar.removeAllPlayers(); return; }
         bar.setName(Component.literal(active.title()));
+        bar.setColor(active.bossBarColor());
         bar.setProgress(BalanceMath.remaining(time));
         // Display to every online player; gameplay effects still apply only to the overworld.
         var online = new java.util.HashSet<>(server.getPlayerList().getPlayers());

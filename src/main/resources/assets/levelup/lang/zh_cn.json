@@ -1,0 +1,4 @@
+{
+  "config.jade.plugin_levelup.event_name": "强化事件名称",
+  "levelup.jade.event": "强化：%s"
+}

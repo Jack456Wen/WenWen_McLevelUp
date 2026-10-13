@@ -125,6 +125,7 @@ public final class Events {
             record.putString("eventName", day.title());
             record.putInt("eventColor", MobVisualMessage.color(day.bossBarColor()));
             record.putBoolean("mobParticles", day.mobParticles());
+            MobEffects.apply(mob, day.mobEffects());
         }
     }
     @SubscribeEvent public void tracking(PlayerEvent.StartTracking event) {

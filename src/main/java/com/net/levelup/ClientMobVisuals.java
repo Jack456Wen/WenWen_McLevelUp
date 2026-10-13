@@ -2,11 +2,9 @@ package com.net.levelup;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.ParticleStatus;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.world.entity.Mob;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import org.joml.Vector3f;
 
 /** Entity-owned state is discarded with the entity; no world scan or retained entity map. */
 final class ClientMobVisuals {
@@ -31,22 +29,25 @@ final class ClientMobVisuals {
     private static void tick(LivingEvent.LivingTickEvent event) {
         var mob = event.getEntity();
         if (!mob.level().isClientSide || !(mob instanceof Mob)
-            || (mob.tickCount + mob.getId()) % 10 != 0 || !mob.isAlive() || mob.isInvisible()
+            || !mob.isAlive() || mob.isInvisible()
             || !mob.getPersistentData().contains(TAG)) return;
         var minecraft = Minecraft.getInstance();
         if (minecraft.isPaused() || minecraft.player == null || mob.distanceToSqr(minecraft.player) > 32 * 32
             || minecraft.options.particles().get() == ParticleStatus.MINIMAL) return;
         long tick = mob.level().getGameTime();
         if (budgetTick != tick) { budgetTick = tick; emitted = 0; }
-        int limit = minecraft.options.particles().get() == ParticleStatus.DECREASED ? 8 : 16;
+        boolean decreased = minecraft.options.particles().get() == ParticleStatus.DECREASED;
+        if (decreased && (mob.tickCount + mob.getId()) % 2 != 0) return;
+        int limit = decreased ? 8 : 16;
         if (emitted >= limit) return;
         var data = mob.getPersistentData().getCompound(TAG);
         if (!data.getBoolean("particles")) return;
         int rgb = data.getInt("rgb");
-        var particle = new DustParticleOptions(new Vector3f(((rgb >> 16) & 255) / 255f,
-            ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f), 0.8f);
-        mob.level().addParticle(particle, mob.getRandomX(0.7),
-            mob.getY() + mob.getRandom().nextDouble() * mob.getBbHeight(), mob.getRandomZ(0.7), 0, 0.025, 0);
+        mob.level().addParticle(VisualParticles.RANK.get(),
+            mob.getX() + (mob.getRandom().nextDouble() - 0.5) * mob.getBbWidth(),
+            mob.getY() + mob.getRandom().nextDouble() * mob.getBbHeight(),
+            mob.getZ() + (mob.getRandom().nextDouble() - 0.5) * mob.getBbWidth(),
+            ((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f);
         emitted++;
     }
 }

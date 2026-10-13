@@ -17,7 +17,8 @@ public final class Rules {
     public record Day(long day, double probability, boolean repeatable, String title, String announcement,
                       double health, double attack, double speed, double armor, String loot, double experienceMultiplier,
                       List<AttackEffects.Entry> attackEffects, List<AttackEffects.Entry> playerEffects, EventBgm bgm,
-                      net.minecraft.world.BossEvent.BossBarColor bossBarColor, boolean mobParticles) {
+                      net.minecraft.world.BossEvent.BossBarColor bossBarColor, boolean mobParticles,
+                      List<AttackEffects.Entry> mobEffects) {
         // Stable across reordering and changes to probability/effects; these three fields identify an event.
         String historyKey() {
             return UUID.nameUUIDFromBytes((day + "\u0000" + title + "\u0000" + loot)
@@ -32,7 +33,7 @@ public final class Rules {
         Path dir = directory();
         Files.createDirectories(dir);
         createDefault(dir.resolve("days.json"), """
-            {"days":[{"day":7,"probability":0.15,"repeatable":true,"title":"文文","bossBarColor":"red","mobParticles":true,"announcement":"文本文本！","healthMultiplier":3,"attackMultiplier":2,"speedMultiplier":1.3,"armor":8,"lootTable":"wenwen","experienceMultiplier":1,"attackEffects":[],"playerEffects":[],"bgm":"","bgmVolume":1,"bgmDurationSeconds":180}]}
+            {"days":[{"day":7,"probability":0.15,"repeatable":true,"title":"文文","bossBarColor":"red","mobParticles":true,"announcement":"文本文本！","healthMultiplier":3,"attackMultiplier":2,"speedMultiplier":1.3,"armor":8,"lootTable":"wenwen","experienceMultiplier":1,"attackEffects":[],"playerEffects":[],"mobEffects":[],"bgm":"","bgmVolume":1,"bgmDurationSeconds":180}]}
             """);
         createDefault(dir.resolve("loot.json"), """
             {"tables":{
@@ -83,7 +84,7 @@ public final class Rules {
                 number(d,"healthMultiplier",1,1,100), number(d,"attackMultiplier",1,1,100),
                 number(d,"speedMultiplier",1,1,100), number(d,"armor",0,0,1000), table,
                 number(d,"experienceMultiplier",1,0,100), AttackEffects.parse(d), PlayerEffects.parse(d), EventBgm.parse(d),
-                bossBarColor(d), mobParticles(d)));
+                bossBarColor(d), mobParticles(d), MobEffects.parse(d)));
         }
         current = new Snapshot(List.copyOf(days), Map.copyOf(tables));
     }

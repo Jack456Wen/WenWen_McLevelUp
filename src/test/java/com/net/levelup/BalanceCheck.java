@@ -23,6 +23,7 @@ public final class BalanceCheck {
         LootCheck.run();
         EventBgmCheck.run();
         MobVisualCheck.run();
+        MobEffectCheck.run();
     }
     private static void check(boolean condition, String name) {
         if (!condition) throw new AssertionError(name);

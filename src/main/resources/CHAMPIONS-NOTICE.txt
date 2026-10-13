@@ -1,0 +1,8 @@
+The animated rank particle implementation in com.net.levelup.RankParticle
+is adapted from the supplied Champions 1.20.1 reference project:
+top.theillusivec4.champions.common.particle.RankParticle.
+Original project: https://github.com/TheIllusiveC4/Champions
+Authors: TheIllusiveC4 and Champions contributors.
+License: GNU General Public License version 3 (see CHAMPIONS-LICENSE.txt).
+Changes: LevelUp registration, client world RNG, and bounded client emission.
+The texture frames refer to Minecraft's existing spell particle assets.

@@ -2,6 +2,8 @@ package com.net.levelup;
 
 /** Pure arithmetic, kept separate so time and probability boundaries can be tested without a server. */
 public final class BalanceMath {
+    /** Uniform spawn-time multiplier; random is in [0, 1). */
+    public static double randomMultiplier(double maximum, double random) { return 1 + random * (maximum - 1); }
     public static long day(long time) { return Math.floorDiv(time, 24000L) + 1; }
     public static float remaining(long time) { return (float)(1 - Math.floorMod(time, 24000L) / 24000.0); }
     public static double weight(double base, double rarity, double strength) {

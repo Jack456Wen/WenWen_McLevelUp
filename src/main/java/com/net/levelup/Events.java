@@ -99,22 +99,20 @@ public final class Events {
         double max = nether ? Settings.NETHER.get() : end ? Settings.END.get() : 1;
         if (day == null && !nether && !end) return;
         double factor = 1 + mob.getRandom().nextDouble() * (max - 1);
-        double health = day == null ? factor : day.health();
-        double attack = day == null ? factor : day.attack();
+        double health = day == null ? factor : BalanceMath.randomMultiplier(day.health(), mob.getRandom().nextDouble());
+        double attack = day == null ? factor : BalanceMath.randomMultiplier(day.attack(), mob.getRandom().nextDouble());
         double speed = day == null ? 1 + mob.getRandom().nextDouble()
-            * ((nether ? Settings.NETHER_SPEED.get() : Settings.END_SPEED.get()) - 1) : day.speed();
+            * ((nether ? Settings.NETHER_SPEED.get() : Settings.END_SPEED.get()) - 1)
+            : BalanceMath.randomMultiplier(day.speed(), mob.getRandom().nextDouble());
         multiply(mob, Attributes.MAX_HEALTH, health, "health");
         multiply(mob, Attributes.ATTACK_DAMAGE, attack, "attack");
         multiply(mob, Attributes.MOVEMENT_SPEED, speed, "speed");
-        if (day == null) {
-            setBase(mob, Attributes.ARMOR, mob.getRandom().nextDouble()
-                * (nether ? Settings.NETHER_ARMOR.get() : Settings.END_ARMOR.get()));
-        } else {
-            setBase(mob, Attributes.ARMOR, day.armor());
-        }
+        double armor = mob.getRandom().nextDouble() * (day == null
+            ? (nether ? Settings.NETHER_ARMOR.get() : Settings.END_ARMOR.get()) : day.armor());
+        setBase(mob, Attributes.ARMOR, armor);
         mob.setHealth(mob.getMaxHealth());
-        // A special day's fixed armor is included in reward strength without allowing zero-base division.
-        double strength = day == null ? factor : Math.max(1, (health + attack + speed + 1 + day.armor() / 20) / 4);
+        // Rewards use the sampled attributes, never the configured upper bounds.
+        double strength = day == null ? factor : Math.max(1, (health + attack + speed + 1 + armor / 20) / 4);
         record.putDouble("strength", strength);
         record.putDouble("attackMultiplier", attack);
         // Snapshot the event's multiplier so surviving mobs keep it across days and reloads.

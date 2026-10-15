@@ -9,16 +9,20 @@ final class OnceEventCheck {
     private static int checks;
 
     static void run() {
-        check(parse("{}"), "missing repeatable preserves repeat behavior");
-        check(parse("{\"repeatable\":true}") && !parse("{\"repeatable\":false}"), "boolean options");
-        rejected("{\"repeatable\":\"false\"}");
-        rejected("{\"repeatable\":0}");
-        rejected("{\"repeatable\":null}");
-        rejected("{\"repeatable\":[]}");
+        check(parse("{}") == -1, "missing maxOccurrences preserves repeat behavior");
+        rejected("{\"maxOccurrences\":true}");
+        rejected("{\"maxOccurrences\":false}");
+        rejected("{\"maxOccurrences\":\"false\"}");
+        check(parse("{\"maxOccurrences\":0}") == 0 && parse("{\"maxOccurrences\":3}") == 3
+            && parse("{\"maxOccurrences\":-3}") == -1, "integer limits");
+        rejected("{\"maxOccurrences\":1.5}");
+        rejected("{\"maxOccurrences\":2147483648}");
+        rejected("{\"maxOccurrences\":null}");
+        rejected("{\"maxOccurrences\":[]}");
 
-        var once = event(false, "once");
-        var another = event(false, "another");
-        var repeat = event(true, "repeat");
+        var once = event(1, "once");
+        var another = event(1, "another");
+        var repeat = event(-1, "repeat");
         var history = new EventHistory();
         var cache = new DailyEvents();
         var rules = rules(once, another);
@@ -46,7 +50,7 @@ final class OnceEventCheck {
             "played events stay excluded after save/load");
         check(new DailyEvents().get(rules(another, once), 32, 123, true, afterBoth) == null,
             "reordering configuration does not reset history");
-        check(new DailyEvents().get(rules(event(false, "once")), 32, 123, true, afterBoth) == null,
+        check(new DailyEvents().get(rules(event(1, "once")), 32, 123, true, afterBoth) == null,
             "reloaded equivalent event remains consumed");
         int[] draws = {0};
         check(DailyEvents.draw(List.of(once), 32, () -> { draws[0]++; return 0; },
@@ -55,27 +59,40 @@ final class OnceEventCheck {
         var repeatingHistory = new EventHistory();
         check(cache.get(rules(repeat), 30, 123, true, repeatingHistory) == repeat
             && cache.get(rules(repeat), 31, 123, true, repeatingHistory) == repeat,
-            "repeatable event can execute on consecutive days");
-        check(!repeatingHistory.eligible(event(false, "repeat"), 32),
-            "changing a previously played repeatable event to one-time preserves its history");
+            "maxOccurrences event can execute on consecutive days");
+        check(!repeatingHistory.eligible(event(1, "repeat"), 32),
+            "changing a previously played maxOccurrences event to one-time preserves its history");
         check(EventHistory.load(new CompoundTag()).eligible(once, 31), "existing worlds start with empty history");
-        System.out.println("Passed " + checks + " repeatable event and persistent history checks.");
+        var three = event(3, "three");
+        var limited = new EventHistory();
+        for (long day = 30; day < 33; day++) {
+            check(new DailyEvents().get(rules(three), day, 123, true, limited) == three, "limited occurrence executes");
+            limited = EventHistory.load(limited.save(new CompoundTag()));
+            limited.setDirty(false);
+            check(new DailyEvents().get(rules(three), day, 123, true, limited) == three && !limited.isDirty(),
+                "same-day restart does not charge another occurrence");
+        }
+        check(!limited.eligible(three, 33), "three occurrences exhaust the limit");
+        check(limited.eligible(event(4, "three"), 33), "raising limit preserves count");
+        check(!limited.eligible(event(0, "three"), 32), "zero disables even today's event");
+        check(!limited.eligible(three, 31), "time rollback does not consume another occurrence");
+        System.out.println("Passed " + checks + " maxOccurrences event and persistent history checks.");
     }
 
-    private static Rules.Day event(boolean repeatable, String title) {
-        return new Rules.Day(30, 1, repeatable, title, title, 1, 1, 1, 0, "wenwen", 1,
+    private static Rules.Day event(int maxOccurrences, String title) {
+        return new Rules.Day(30, 1, maxOccurrences, title, title, 1, 1, 1, 0, "wenwen", 1,
             List.of(), List.of(), new EventBgm(null, 1, 180), net.minecraft.world.BossEvent.BossBarColor.RED, true, List.of());
     }
     private static Rules.Snapshot rules(Rules.Day... events) {
         return new Rules.Snapshot(List.of(events), Map.of());
     }
-    private static boolean parse(String text) {
-        return Rules.repeatable(JsonParser.parseString(text).getAsJsonObject());
+    private static int parse(String text) {
+        return Rules.maxOccurrences(JsonParser.parseString(text).getAsJsonObject());
     }
     private static void rejected(String text) {
         try {
             parse(text);
-            throw new AssertionError("Invalid repeatable option accepted: " + text);
+            throw new AssertionError("Invalid maxOccurrences option accepted: " + text);
         } catch (IllegalArgumentException expected) { checks++; }
     }
     private static void check(boolean condition, String message) {

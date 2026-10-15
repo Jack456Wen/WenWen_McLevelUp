@@ -10,6 +10,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 /** Per-save execution history, stored in the overworld's data directory. */
 final class EventHistory extends SavedData {
     private final Map<String, Long> lastPlayed = new HashMap<>();
+    private final Map<String, Long> playCounts = new HashMap<>();
 
     static EventHistory get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(EventHistory::load, EventHistory::new, "levelup_events");
@@ -17,20 +18,33 @@ final class EventHistory extends SavedData {
 
     boolean eligible(Rules.Day event, long day) {
         Long played = lastPlayed.get(event.historyKey());
-        // Resume today's event after restart/reload, but never draw it on another date.
-        return event.repeatable() || played == null || played == day;
+        int limit = event.maxOccurrences();
+        if (limit == 0) return false;
+        if (limit < 0) return true;
+        // Resume the latest execution on the same date without charging it again.
+        if (played != null && played == day) return true;
+        if (played != null && day < played) return false;
+        return playCounts.getOrDefault(event.historyKey(), 0L) < limit;
     }
 
     void record(Rules.Day event, long day) {
         Long previous = lastPlayed.put(event.historyKey(), day);
-        if (previous == null || previous != day) setDirty();
+        if (previous == null || previous != day) {
+            playCounts.compute(event.historyKey(), (key, count) -> count == null ? 1L
+                : count == Long.MAX_VALUE ? count : count + 1);
+            setDirty();
+        }
     }
 
     static EventHistory load(CompoundTag tag) {
         EventHistory history = new EventHistory();
         CompoundTag played = tag.getCompound("lastPlayed");
+        CompoundTag counts = tag.getCompound("playCounts");
         for (String key : played.getAllKeys()) {
-            if (played.contains(key, Tag.TAG_LONG)) history.lastPlayed.put(key, played.getLong(key));
+            if (played.contains(key, Tag.TAG_LONG) && counts.contains(key, Tag.TAG_LONG)) {
+                history.lastPlayed.put(key, played.getLong(key));
+                history.playCounts.put(key, counts.getLong(key));
+            }
         }
         return history;
     }
@@ -39,6 +53,9 @@ final class EventHistory extends SavedData {
         CompoundTag played = new CompoundTag();
         lastPlayed.forEach(played::putLong);
         tag.put("lastPlayed", played);
+        CompoundTag counts = new CompoundTag();
+        playCounts.forEach(counts::putLong);
+        tag.put("playCounts", counts);
         return tag;
     }
 }

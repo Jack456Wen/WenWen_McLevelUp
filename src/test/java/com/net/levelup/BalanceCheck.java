@@ -6,6 +6,16 @@ public final class BalanceCheck {
         check(BalanceMath.randomMultiplier(5, .5) == 3, "event multiplier interpolation");
         check(BalanceMath.randomMultiplier(1, .9) == 1, "unit maximum disables scaling");
         check(BalanceMath.randomMultiplier(5, .999999) < 5, "event multiplier near upper bound");
+        check(BalanceMath.randomMultiplier(.7, 0) == .7 && BalanceMath.randomMultiplier(.7, .99) == .7,
+            "fractional weakening is exactly the configured factor");
+        for (String key : new String[] {"healthMultiplier", "attackMultiplier", "speedMultiplier"}) {
+            var json = new com.google.gson.JsonObject();
+            json.addProperty(key, .7);
+            check(Rules.multiplier(json, key) == .7, "fractional multiplier parsed");
+            json.addProperty(key, 0);
+            try { Rules.multiplier(json, key); throw new AssertionError("zero multiplier accepted"); }
+            catch (IllegalArgumentException expected) { }
+        }
         check(BalanceMath.day(0) == 1 && BalanceMath.day(23999) == 1 && BalanceMath.day(24000) == 2, "day boundaries");
         check(BalanceMath.remaining(0) == 1 && BalanceMath.remaining(12000) == .5f, "day progress");
         check(BalanceMath.remaining(23000) < BalanceMath.remaining(13000), "sleep skips remaining night");
@@ -19,7 +29,7 @@ public final class BalanceCheck {
         check(BalanceMath.experience(10, 3, 2, 1.5, 10000) == 90, "event and global multipliers stack");
         check(BalanceMath.experience(10, 3, 2, 0, 10000) == 0, "zero event multiplier disables all experience");
         check(BalanceMath.experience(10, 3, 2, 1, 10000) == BalanceMath.experience(10, 3, 2, 10000), "default event multiplier preserves legacy rewards");
-        System.out.println("Passed 15 LevelUp balance and time checks.");
+        System.out.println("Passed LevelUp balance, fractional multiplier and time checks.");
         DailyEventCheck.run();
         OnceEventCheck.run();
         AttackEffectCheck.run();

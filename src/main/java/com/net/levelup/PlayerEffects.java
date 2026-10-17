@@ -48,7 +48,7 @@ public final class PlayerEffects {
             int amplifier = current == null ? -1 : current.getAmplifier();
             int remaining = current == null ? 0 : current.getDuration();
             if (!needsRefresh(amplifier, remaining, entry.amplifier(), entry.durationTicks())) continue;
-            player.addEffect(new MobEffectInstance(entry.effect(), entry.durationTicks(), entry.amplifier()));
+            player.addEffect(new MobEffectInstance(entry.effect(), entry.durationTicks(), entry.amplifier(),false, false, true));
         }
     }
     private PlayerEffects() {}

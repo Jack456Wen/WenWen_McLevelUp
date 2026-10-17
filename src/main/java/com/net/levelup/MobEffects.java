@@ -19,7 +19,7 @@ final class MobEffects {
     }
     static void apply(Mob mob, List<AttackEffects.Entry> entries) {
         for (var entry : entries) {
-            var instance = new MobEffectInstance(entry.effect(), entry.durationTicks(), entry.amplifier());
+            var instance = new MobEffectInstance(entry.effect(), entry.durationTicks(), entry.amplifier(),false, false, true);
             if (entry.effect().isInstantenous()) {
                 if (mob.canBeAffected(instance))
                     entry.effect().applyInstantenousEffect(null, null, mob, entry.amplifier(), 1);

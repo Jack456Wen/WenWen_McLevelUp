@@ -85,8 +85,15 @@ public final class AttackEffects {
                 if (entry.effect.isInstantenous()) {
                     if (target.canBeAffected(new MobEffectInstance(entry.effect, entry.durationTicks, entry.amplifier)))
                         entry.effect.applyInstantenousEffect(attacker, attacker, target, entry.amplifier, 1.0);
-                } else target.addEffect(new MobEffectInstance(entry.effect, entry.durationTicks, entry.amplifier), attacker);
+                } else {
+                    // 参数依次为: effect, duration, amplifier,
+                    // ambient(环境效果), visible(是否显示粒子), showIcon(是否在HUD显示图标)
+                    target.addEffect(new MobEffectInstance(
+                            entry.effect, entry.durationTicks, entry.amplifier,
+                            false, false, true), attacker);
+                }
             }
+
         } finally { applying = false; }
     }
     public static void clear() { CACHE.clear(); applying = false; }

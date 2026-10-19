@@ -122,7 +122,8 @@ public final class ClientHud {
         lastMode = mode;
         if (HudSettings.MODE.get() == HudSettings.Mode.SIMPLE)
         {
-            lines = new String[] {"第 " + coloredDay + " 天 " + coloredClock + " [" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "] " + fps + " FPS " + name};
+            //fps + " FPS "
+            lines = new String[] {"FPS: "+fps +" "+coloredDay + "天 "+ coloredClock + " [" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "] " + name};
         }
         else
         {

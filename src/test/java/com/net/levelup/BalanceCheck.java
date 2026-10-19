@@ -38,6 +38,7 @@ public final class BalanceCheck {
         EventBgmCheck.run();
         MobVisualCheck.run();
         MobEffectCheck.run();
+        HudCheck.run();
     }
     private static void check(boolean condition, String name) {
         if (!condition) throw new AssertionError(name);

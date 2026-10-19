@@ -15,7 +15,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
  * 仍然使用原版声音封包方案（见 {@link EventBgm}）。
  */
 final class Network {
-    private static final String VERSION = "2";
+    private static final String VERSION = "4";
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
         .named(new ResourceLocation(LevelUp.ID, "music"))
         .networkProtocolVersion(() -> VERSION)
@@ -39,10 +39,22 @@ final class Network {
             .encoder(MobVisualMessage::write).decoder(MobVisualMessage::read)
             .consumerMainThread(MobVisualMessage::handle).add();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientMobVisuals::register);
+        CHANNEL.messageBuilder(HudStatsMessage.class, 2, NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(HudStatsMessage::write).decoder(HudStatsMessage::read)
+            .consumerMainThread(HudStatsMessage::handle).add();
+        CHANNEL.messageBuilder(HudSubscriptionMessage.class, 3, NetworkDirection.PLAY_TO_SERVER)
+            .encoder(HudSubscriptionMessage::write).decoder(HudSubscriptionMessage::read)
+            .consumerMainThread(HudSubscriptionMessage::handle).add();
     }
     /** 该玩家的客户端装了本模组、并协商出了这条通道时，音乐可以交给客户端精确控制。 */
     static boolean controlsMusic(ServerPlayer player) {
         return CHANNEL.isRemotePresent(player.connection.connection);
+    }
+    static void stats(ServerPlayer player, HudStatsMessage message) {
+        if (controlsMusic(player)) CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
+    }
+    static void subscribe(net.minecraft.network.Connection connection, boolean enabled) {
+        if (CHANNEL.isRemotePresent(connection)) CHANNEL.sendToServer(new HudSubscriptionMessage(enabled));
     }
     static void play(ServerPlayer player, ResourceLocation sound, float volume) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), BgmMessage.play(sound, volume));

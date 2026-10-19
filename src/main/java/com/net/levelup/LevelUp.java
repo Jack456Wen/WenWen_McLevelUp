@@ -13,6 +13,7 @@ public final class LevelUp {
     public static final Logger LOGGER = LogUtils.getLogger();
     public LevelUp() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Settings.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, HudSettings.SPEC);
         VisualParticles.TYPES.register(net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext.get().getModEventBus());
         Network.register();
         MinecraftForge.EVENT_BUS.register(new Events());

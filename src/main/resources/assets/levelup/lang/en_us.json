@@ -1,4 +1,11 @@
 {
+  "levelup.free_camera.locked": "Free Camera is locked. Meet the required conditions to unlock it.",
+  "levelup.free_camera.unsupported": "This server does not support Free Camera authorization.",
+  "levelup.free_camera.timeout": "Free Camera authorization timed out. Please try again.",
+  "key.categories.levelup": "LevelUp",
+  "key.levelup.free_camera": "Toggle Free Camera",
+  "levelup.free_camera.enabled": "Free Camera enabled",
+  "levelup.free_camera.disabled": "Free Camera disabled",
   "config.jade.plugin_levelup.event_name": "Empowerment event name",
   "levelup.jade.event": "Empowerment: %s"
 }

@@ -14,3 +14,7 @@ maxExperiencePerMob = 10000
 
 [specialDays]
 enabled = true
+
+[freeCamera]
+# true：需要 levelup_free_camera_unlocked 标签；false：所有玩家可使用。
+requireUnlock = true

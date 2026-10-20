@@ -15,7 +15,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
  * 仍然使用原版声音封包方案（见 {@link EventBgm}）。
  */
 final class Network {
-    private static final String VERSION = "4";
+    private static final String VERSION = "5";
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
         .named(new ResourceLocation(LevelUp.ID, "music"))
         .networkProtocolVersion(() -> VERSION)
@@ -45,6 +45,12 @@ final class Network {
         CHANNEL.messageBuilder(HudSubscriptionMessage.class, 3, NetworkDirection.PLAY_TO_SERVER)
             .encoder(HudSubscriptionMessage::write).decoder(HudSubscriptionMessage::read)
             .consumerMainThread(HudSubscriptionMessage::handle).add();
+        CHANNEL.messageBuilder(FreeCameraRequest.class, 4, NetworkDirection.PLAY_TO_SERVER)
+            .encoder(FreeCameraRequest::write).decoder(FreeCameraRequest::read)
+            .consumerMainThread(FreeCameraRequest::handle).add();
+        CHANNEL.messageBuilder(FreeCameraPermission.class, 5, NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(FreeCameraPermission::write).decoder(FreeCameraPermission::read)
+            .consumerMainThread(FreeCameraPermission::handle).add();
     }
     /** 该玩家的客户端装了本模组、并协商出了这条通道时，音乐可以交给客户端精确控制。 */
     static boolean controlsMusic(ServerPlayer player) {
@@ -55,6 +61,15 @@ final class Network {
     }
     static void subscribe(net.minecraft.network.Connection connection, boolean enabled) {
         if (CHANNEL.isRemotePresent(connection)) CHANNEL.sendToServer(new HudSubscriptionMessage(enabled));
+    }
+    static boolean requestFreeCamera(net.minecraft.network.Connection connection, int requestId) {
+        if (!CHANNEL.isRemotePresent(connection)) return false;
+        CHANNEL.sendToServer(new FreeCameraRequest(requestId));
+        return true;
+    }
+    static void freeCameraPermission(ServerPlayer player, int requestId) {
+        if (controlsMusic(player)) CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new FreeCameraPermission(requestId, FreeCameraAccess.allowed(player)));
     }
     static void play(ServerPlayer player, ResourceLocation sound, float volume) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), BgmMessage.play(sound, volume));

@@ -39,6 +39,9 @@ public final class BalanceCheck {
         MobVisualCheck.run();
         MobEffectCheck.run();
         HudCheck.run();
+        FreeCameraCheck.run();
+        FreeCameraChunkCheck.run();
+        FreeCameraAccessCheck.run();
     }
     private static void check(boolean condition, String name) {
         if (!condition) throw new AssertionError(name);

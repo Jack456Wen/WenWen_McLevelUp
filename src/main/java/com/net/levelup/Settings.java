@@ -7,6 +7,7 @@ public final class Settings {
     public static final ForgeConfigSpec.DoubleValue NETHER, END, XP;
     public static final ForgeConfigSpec.DoubleValue NETHER_ARMOR, END_ARMOR, NETHER_SPEED, END_SPEED;
     public static final ForgeConfigSpec.BooleanValue DAYS;
+    public static final ForgeConfigSpec.BooleanValue FREE_CAMERA_REQUIRE_UNLOCK;
     public static final ForgeConfigSpec.IntValue XP_CAP;
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -22,6 +23,10 @@ public final class Settings {
         XP_CAP = b.comment("每只强化怪物的经验上限，避免极端倍率产生大量经验球。").defineInRange("maxExperiencePerMob", 10000, 0, 100000);
         b.pop().push("specialDays");
         DAYS = b.comment("特殊日详见 config/levelup/days.json，仅主世界生效。").define("enabled", true);
+        b.pop();
+        b.push("freeCamera");
+        FREE_CAMERA_REQUIRE_UNLOCK = b.comment("是否限制灵魂出窍；开启时玩家必须拥有 levelup_free_camera_unlocked 标签。由服务端决定，关闭后所有玩家可使用。")
+                .define("requireUnlock", true);
         b.pop();
         SPEC = b.build();
     }

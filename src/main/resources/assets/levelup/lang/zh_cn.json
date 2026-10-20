@@ -1,7 +1,7 @@
 {
-  "levelup.free_camera.locked": "灵魂出窍功能未解锁，需要满足特定条件。",
-  "levelup.free_camera.unsupported": "服务器未提供灵魂出窍解锁验证，暂时无法使用。",
-  "levelup.free_camera.timeout": "灵魂出窍验证超时，请重试。",
+  "levelup.free_camera.locked": "§c灵魂出窍功能未解锁，需要满足特定条件",
+  "levelup.free_camera.unsupported": "服务器未提供灵魂出窍解锁验证，暂时无法使用",
+  "levelup.free_camera.timeout": "灵魂出窍验证超时，请重试",
   "key.categories.levelup": "LevelUp",
   "key.levelup.free_camera": "切换灵魂出窍",
   "levelup.free_camera.enabled": "灵魂出窍§a已开启",

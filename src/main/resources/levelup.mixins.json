@@ -2,6 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.net.levelup.mixin",
+  "plugin": "com.net.levelup.mixin.LevelUpMixinPlugin",
   "refmap": "levelup.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
@@ -13,6 +14,7 @@
     "FreeCameraMinecraftMixin",
     "FreeCameraGuiMixin",
     "FreeCameraLevelRendererMixin",
+    "FreeCameraSetupRenderMixin",
     "FreeCameraRenderChunkMixin",
     "EventMusicManagerMixin",
     "EventMusicEngineMixin",

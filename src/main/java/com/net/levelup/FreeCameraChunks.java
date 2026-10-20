@@ -1,6 +1,5 @@
 package com.net.levelup;
 
-/** Range selection adapted from Tweakeroo CameraUtils (LGPL-3.0). */
 final class FreeCameraChunks {
     @FunctionalInterface
     interface Marker { void mark(int x, int z); }

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** Tweakeroo's optional renderEdgeChunks behavior; unchanged by default. */
+
 @Mixin(ChunkRenderDispatcher.RenderChunk.class)
 public abstract class FreeCameraRenderChunkMixin {
     @Inject(method = "doesChunkExistAt", at = @At("HEAD"), cancellable = true, require = 0)

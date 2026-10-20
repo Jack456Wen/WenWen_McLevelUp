@@ -1,9 +1,6 @@
 package com.net.levelup;
 
-/**
- * Movement ramp adapted from Tweakeroo/Tweakerge MiscUtils and CameraEntity.
- * LGPL-3.0; see TWEAKEROO-NOTICE.txt and TWEAKEROO-LICENSE.txt.
- */
+
 final class FreeCameraMotion {
     private FreeCameraMotion() { }
 

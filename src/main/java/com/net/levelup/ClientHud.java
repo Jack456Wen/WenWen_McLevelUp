@@ -91,12 +91,19 @@ public final class ClientHud {
         }
         if (!visible) { lastMode = null; return; }
         var pos = mc.player.blockPosition();
-        boolean slowUpdate = ++ticks % 5 == 0 || lastMode != mode;
-        if (slowUpdate) {
+        boolean refreshAll = lastMode != mode;
+        ticks = (ticks + 1) % 20;
+        boolean timeUpdate = ticks % 5 == 0 || refreshAll;
+        boolean infoUpdate = ticks == 0 || refreshAll;
+        if (timeUpdate) {
             long time = mc.level.getDayTime();
             long day = BalanceMath.day(time);
             int minutes = (int)((Math.floorMod(time, 24000L) * 60 / 1000 + 360) % 1440);
             String clock = String.format(Locale.ROOT, "%02d:%02d", minutes / 60, minutes % 60);
+            coloredDay = ChatFormatting.GREEN + Long.toString(day) + ChatFormatting.RESET;
+            coloredClock = ChatFormatting.GREEN + clock + ChatFormatting.RESET;
+        }
+        if (infoUpdate) {
             var biome = mc.level.getBiome(pos).unwrapKey();
             name = biome.map(key -> {
                 var id = key.location();
@@ -106,8 +113,6 @@ public final class ClientHud {
                 return I18n.exists(translation) ? I18n.get(translation) : id.toString();
             }).orElse("未知");
             fps = mc.getFps();
-            coloredDay = ChatFormatting.GREEN + Long.toString(day) + ChatFormatting.RESET;
-            coloredClock = ChatFormatting.GREEN + clock + ChatFormatting.RESET;
             boolean valid = connection == mc.getConnection() && Float.isFinite(mspt) && mspt >= 0
                 && Float.isFinite(tps) && tps >= 0 && tps <= 20
                 && System.nanoTime() - received < 5_000_000_000L;
@@ -117,7 +122,7 @@ public final class ClientHud {
             statsText = valid ? String.format(Locale.ROOT, "TPS: %s%.1f%s  MSPT: %s%.1f%s",
                 tpsColor, tps, ChatFormatting.RESET, msptColor, mspt, ChatFormatting.RESET) : "TPS: --  MSPT: --";
         }
-        if (!slowUpdate && pos.equals(lastPos)) return;
+        if (!timeUpdate && !infoUpdate && pos.equals(lastPos)) return;
         lastPos = pos;
         lastMode = mode;
         if (HudSettings.MODE.get() == HudSettings.Mode.SIMPLE)

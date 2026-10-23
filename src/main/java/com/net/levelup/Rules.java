@@ -25,7 +25,7 @@ public final class Rules {
                 .getBytes(StandardCharsets.UTF_8)).toString();
         }
     }
-    public record Entry(Item item, int count, double weight, double rarity, double minimumStrength) {}
+    public record Entry(Item item, int count, double weight, double extraWeight) {}
     public record Snapshot(List<Day> days, Map<String, List<Entry>> tables) {}
     public static volatile Snapshot current = new Snapshot(List.of(), Map.of());
     public static Path directory() { return FMLPaths.CONFIGDIR.get().resolve(LevelUp.ID); }
@@ -38,13 +38,13 @@ public final class Rules {
         createDefault(dir.resolve("loot.json"), """
             {"tables":{
               "dimension":[
-                {"item":"minecraft:iron_ingot","count":1,"weight":100,"rarity":0,"minStrength":1},
-                {"item":"minecraft:gold_ingot","count":1,"weight":30,"rarity":1,"minStrength":1},
-                {"item":"minecraft:diamond","count":1,"weight":3,"rarity":3,"minStrength":2},
-                {"item":"minecraft:netherite_scrap","count":1,"weight":1,"rarity":4,"minStrength":3}],
+                {"item":"minecraft:iron_ingot","count":1,"weight":100,"extraWeight":0},
+                {"item":"minecraft:gold_ingot","count":1,"weight":30,"extraWeight":60},
+                {"item":"minecraft:diamond","count":1,"weight":3,"extraWeight":6},
+                {"item":"minecraft:netherite_scrap","count":1,"weight":1,"extraWeight":2}],
               "wenwen":[
-                {"item":"minecraft:gold_ingot","count":1,"weight":50,"rarity":0,"minStrength":1},
-                {"item":"minecraft:diamond","count":1,"weight":5,"rarity":2,"minStrength":1}]
+                {"item":"minecraft:gold_ingot","count":1,"weight":50,"extraWeight":0},
+                {"item":"minecraft:diamond","count":1,"weight":5,"extraWeight":10}]
             }}
             """);
         List<Day> days = new ArrayList<>();
@@ -56,22 +56,19 @@ public final class Rules {
                 JsonObject e = element.getAsJsonObject();
                 int count = integer(e, "count", 1, 1, 64);
                 double weight = number(e, "weight", 1, 0.000001, 1e9);
-                double rarity = number(e, "rarity", 0, 0, 10);
-                double minimumStrength = number(e, "minStrength", 1, 1, 100);
+                double extraWeight = extraWeight(e, weight);
                 // 轮空条目：item 为 null，抽中它就表示这次不掉额外物品。
                 if (blank(e)) {
-                    entries.add(new Entry(null, count, weight, rarity, minimumStrength));
+                    entries.add(new Entry(null, count, weight, extraWeight));
                     continue;
                 }
                 if (!e.has("item")) throw new IllegalArgumentException("Missing item in loot table: " + table.getKey());
                 ResourceLocation id = ResourceLocation.tryParse(e.get("item").getAsString());
                 if (id == null || !ForgeRegistries.ITEMS.containsKey(id))
                     throw new IllegalArgumentException("Unknown item: " + e.get("item"));
-                entries.add(new Entry(ForgeRegistries.ITEMS.getValue(id), count, weight, rarity, minimumStrength));
+                entries.add(new Entry(ForgeRegistries.ITEMS.getValue(id), count, weight, extraWeight));
             }
             if (entries.isEmpty()) throw new IllegalArgumentException("Empty loot table: " + table.getKey());
-            if (entries.stream().noneMatch(e -> e.minimumStrength <= 1))
-                throw new IllegalArgumentException("Table needs an entry with minStrength=1: " + table.getKey());
             tables.put(table.getKey(), List.copyOf(entries));
         }
         if (!tables.containsKey("dimension")) throw new IllegalArgumentException("Missing dimension loot table");
@@ -129,10 +126,10 @@ public final class Rules {
         if (!day.has("probability")) throw new IllegalArgumentException("Missing probability (0 to 1)");
         return number(day, "probability", 0, 0, 1);
     }
-    public static ItemStack roll(String table, double strength, RandomSource random) {
+    public static ItemStack roll(String table, double progress, RandomSource random) {
         List<Entry> entries = current.tables.get(table);
         if (entries == null) return ItemStack.EMPTY;
-        Entry entry = pick(entries, strength, random.nextDouble());
+        Entry entry = pick(entries, progress, random.nextDouble());
         // item 为 null 的轮空条目，或没有可抽取的条目时，都不产生额外掉落。
         if (entry == null || entry.item == null) return ItemStack.EMPTY;
         ItemStack stack = new ItemStack(entry.item, entry.count);
@@ -141,17 +138,16 @@ public final class Rules {
         return stack;
     }
     /**
-     * 按实际权重挑出条目，{@code random} 取 [0,1)；没有可抽取的条目（门槛都不满足或总权重为 0）返回 null。
-     * 抽奖与物品堆构建拆开，方便在没有 Minecraft 启动环境时测门槛与权重。
+     * 按实际权重挑出条目，{@code random} 取 [0,1)；没有可抽取的条目（总权重为 0）返回 null。
+     * 抽奖与物品堆构建拆开，方便在没有 Minecraft 启动环境时测权重。
      */
-    static Entry pick(List<Entry> entries, double strength, double random) {
+    static Entry pick(List<Entry> entries, double progress, double random) {
         double total = 0;
-        for (Entry e : entries) if (strength >= e.minimumStrength) total += weight(e, strength);
+        for (Entry e : entries) total += weight(e, progress);
         if (total <= 0) return null;
         double value = random * total;
         for (Entry e : entries) {
-            if (strength < e.minimumStrength) continue;
-            value -= weight(e, strength);
+            value -= weight(e, progress);
             if (value < 0) return e;
         }
         return null;
@@ -161,7 +157,12 @@ public final class Rules {
         if (e.has("blank")) return e.get("blank").getAsBoolean();
         return e.has("item") && "minecraft:air".equals(e.get("item").getAsString());
     }
-    private static double weight(Entry e, double strength) { return BalanceMath.weight(e.weight, e.rarity, strength); }
+    static double extraWeight(JsonObject e, double weight) {
+        if (e.has("rarity") || e.has("minStrength"))
+            throw new IllegalArgumentException("rarity/minStrength are no longer supported; replace them with extraWeight");
+        return number(e, "extraWeight", blank(e) ? 0 : weight * 2, 0, 2e9);
+    }
+    private static double weight(Entry e, double progress) { return BalanceMath.weight(e.weight, e.extraWeight, progress); }
     private static void createDefault(Path path, String text) throws Exception {
         if (!Files.exists(path)) Files.writeString(path, text, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
     }

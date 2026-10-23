@@ -114,6 +114,12 @@ public final class Events {
         // Rewards use the sampled attributes, never the configured upper bounds.
         double strength = day == null ? factor : Math.max(1, (health + attack + speed + 1 + armor / 20) / 4);
         record.putDouble("strength", strength);
+        double lootProgress = day == null
+            ? BalanceMath.lootProgress(factor - 1, max - 1)
+            : BalanceMath.lootProgress(BalanceMath.lootBonus(health, attack, speed, armor),
+                BalanceMath.lootBonus(day.health(), day.attack(), day.speed(), day.armor()));
+        // Persist the normalized roll so later config changes never change this mob's bonus.
+        record.putDouble("lootProgress", lootProgress);
         record.putDouble("attackMultiplier", attack);
         // Snapshot the event's multiplier so surviving mobs keep it across days and reloads.
         record.putDouble("experienceMultiplier", day == null ? 1 : day.experienceMultiplier());
@@ -165,7 +171,7 @@ public final class Events {
             || !event.getEntity().level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) return;
         CompoundTag record = event.getEntity().getPersistentData().getCompound(TAG);
         if (!record.contains("strength")) return;
-        var stack = Rules.roll(record.getString("loot"), record.getDouble("strength"), event.getEntity().getRandom());
+        var stack = Rules.roll(record.getString("loot"), record.getDouble("lootProgress"), event.getEntity().getRandom());
         if (!stack.isEmpty()) event.getDrops().add(new net.minecraft.world.entity.item.ItemEntity(
             event.getEntity().level(), event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), stack));
     }

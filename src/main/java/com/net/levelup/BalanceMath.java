@@ -8,8 +8,16 @@ public final class BalanceMath {
     }
     public static long day(long time) { return Math.floorDiv(time, 24000L) + 1; }
     public static float remaining(long time) { return (float)(1 - Math.floorMod(time, 24000L) / 24000.0); }
-    public static double weight(double base, double rarity, double strength) {
-        return base * Math.pow(Math.min(100, strength), rarity);
+    /** Reward progress within the configured strengthening range; no strengthening means no bonus. */
+    public static double lootProgress(double actualBonus, double maximumBonus) {
+        return maximumBonus <= 0 ? 0 : Math.max(0, Math.min(1, actualBonus / maximumBonus));
+    }
+    public static double lootBonus(double health, double attack, double speed, double armor) {
+        return Math.max(0, health - 1) + Math.max(0, attack - 1)
+            + Math.max(0, speed - 1) + Math.max(0, armor) / 20;
+    }
+    public static double weight(double base, double extraWeight, double progress) {
+        return base + extraWeight * Math.max(0, Math.min(1, progress));
     }
     public static int experience(int original, double strength, double multiplier, int cap) {
         return experience(original, strength, multiplier, 1, cap);

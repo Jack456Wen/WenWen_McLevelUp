@@ -1,42 +1,54 @@
 package com.net.levelup;
 
 import java.util.List;
+import com.google.gson.JsonObject;
 
 final class LootCheck {
     static void run() {
-        // minStrength 门槛：不满足的条目完全不参与抽取，都不满足时这次就没有额外掉落。
-        var gated = List.of(entry(1, 1, 5), entry(2, 1, 1));
-        check(Rules.pick(gated, 1, 0).count() == 2, "entries above the strength gate are skipped");
-        check(Rules.pick(gated, 5, 0).count() == 1, "entries become eligible once strength reaches the gate");
-        check(Rules.pick(List.of(entry(1, 1, 5)), 1, 0.5) == null, "nothing eligible means no drop");
-        // 等权重：把 [0,1) 均分。
-        var even = List.of(entry(1, 1, 1), entry(2, 1, 1));
-        check(Rules.pick(even, 1, 0).count() == 1 && Rules.pick(even, 1, 0.4999).count() == 1
-            && Rules.pick(even, 1, 0.5).count() == 2 && Rules.pick(even, 1, 0.9999).count() == 2,
-            "equal weights split the random range");
-        // rarity：权重按 强度^rarity 放大，强度越高稀有条目越容易抽到。
-        var rarity = List.of(entry(1, 100, 0, 1), entry(2, 1, 3, 1));
-        check(Rules.pick(rarity, 1, 0.5).count() == 1 && Rules.pick(rarity, 5, 0.5).count() == 2,
-            "rarity raises the rare entry's odds with strength");
-        // 权重为 0 的条目抽不中；整表权重为 0 时没有额外掉落。
-        var zero = List.of(entry(1, 0, 0, 1), entry(2, 1, 0, 1));
-        check(Rules.pick(zero, 1, 0).count() == 2 && Rules.pick(List.of(entry(1, 0, 0, 1)), 1, 0.99) == null,
-            "zero weight entries are never picked");
-        // 轮空条目照常参与抽取：抽中时 item 为 null，roll 会返回空物品堆（不掉落）。
-        var blank = List.of(blankEntry(1, 0, 1), entry(2, 1, 0, 1));
-        check(Rules.pick(blank, 1, 0).item() == null && Rules.pick(blank, 1, 0.9).count() == 2,
-            "blank entries take part in the draw and are recognisable as blank");
-        System.out.println("Passed 7 loot table selection checks.");
+        double progress = BalanceMath.lootProgress(BalanceMath.lootBonus(45, 1, 1, 0),
+            BalanceMath.lootBonus(50, 1, 1, 0));
+        check(Math.abs(BalanceMath.weight(10, 30, progress) - 36.93877551020408) < 1e-10,
+            "45 of configured 50 must not reach cap");
+        check(BalanceMath.weight(10, 30, BalanceMath.lootProgress(49, 49)) == 40, "configured maximum reaches cap");
+        check(BalanceMath.weight(5, 10, 0) == 5 && BalanceMath.weight(5, 10, .5) == 10,
+            "base and linear interpolation");
+        check(BalanceMath.weight(5, 10, 1) == 15 && BalanceMath.weight(5, 10, 100) == 15, "cap");
+        check(BalanceMath.weight(5, 0, 1) == 5, "zero extra stays fixed");
+        check(BalanceMath.lootProgress(0, 0) == 0 && BalanceMath.lootProgress(0, 49) == 0, "no strengthening");
+        check(BalanceMath.lootBonus(.5, .5, 1, 0) == 0, "weakening adds no bonus");
+        check(BalanceMath.lootBonus(4, 2, 1.5, 10) == 5, "combined attributes");
+        check(BalanceMath.lootProgress(1, 4) == .25, "dimension normalization");
+        var entries = List.of(entry(1, 100, 0), entry(2, 10, 20));
+        check(Rules.pick(entries, 0, .8).count() == 1 && Rules.pick(entries, 1, .8).count() == 2,
+            "higher progress increases item odds against fixed blank weight");
+        var even = List.of(entry(1, 1, 0), entry(2, 1, 0));
+        check(Rules.pick(even, 0, .4999).count() == 1 && Rules.pick(even, 0, .5).count() == 2, "equal weights");
+        check(Rules.pick(List.of(entry(1, 0, 0)), 0, .5) == null, "zero total");
+        var json = new JsonObject();
+        check(Rules.extraWeight(json, 5) == 10, "item default extra");
+        json.addProperty("blank", true);
+        check(Rules.extraWeight(json, 5) == 0, "blank default fixed");
+        json.remove("blank"); json.addProperty("item", "minecraft:air");
+        check(Rules.extraWeight(json, 5) == 0, "air default fixed");
+        json.addProperty("extraWeight", 4);
+        check(Rules.extraWeight(json, 5) == 4, "explicit extra");
+        json.addProperty("extraWeight", 0);
+        check(Rules.extraWeight(json, 5) == 0, "explicit zero");
+        json.addProperty("extraWeight", -1);
+        reject(json);
+        json.addProperty("extraWeight", Double.NaN); reject(json);
+        json.remove("extraWeight"); json.addProperty("rarity", 0); reject(json);
+        json.remove("rarity"); json.addProperty("minStrength", 1); reject(json);
+        var blank = List.of(entry(0, 300, 0), entry(1, 5, 10));
+        check(Rules.pick(blank, 100, 0).count() == 0 && Rules.pick(blank, 100, .999).count() == 1, "blank participates");
+        System.out.println("Passed loot growth, cap, selection and configuration checks.");
     }
-    /** item 为 null 表示真实物品在这个纯逻辑测试里不重要，这里只用 count 区分条目。 */
-    private static Rules.Entry entry(int count, double weight, double rarity, double minimumStrength) {
-        return new Rules.Entry(null, count, weight, rarity, minimumStrength);
+    private static Rules.Entry entry(int count, double weight, double extraWeight) {
+        return new Rules.Entry(null, count, weight, extraWeight);
     }
-    private static Rules.Entry entry(int count, double weight, double minimumStrength) {
-        return entry(count, weight, 0, minimumStrength);
-    }
-    private static Rules.Entry blankEntry(double weight, double rarity, double minimumStrength) {
-        return new Rules.Entry(null, 0, weight, rarity, minimumStrength);
+    private static void reject(JsonObject json) {
+        try { Rules.extraWeight(json, 5); throw new AssertionError("invalid config accepted"); }
+        catch (IllegalArgumentException expected) { }
     }
     private static void check(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);

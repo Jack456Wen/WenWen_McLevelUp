@@ -20,8 +20,8 @@ public final class BalanceCheck {
         check(BalanceMath.remaining(0) == 1 && BalanceMath.remaining(12000) == .5f, "day progress");
         check(BalanceMath.remaining(23000) < BalanceMath.remaining(13000), "sleep skips remaining night");
         check(BalanceMath.remaining(24000) == 1, "next day resets progress");
-        double weakOdds = BalanceMath.weight(3, 3, 1) / BalanceMath.weight(100, 0, 1);
-        double strongOdds = BalanceMath.weight(3, 3, 5) / BalanceMath.weight(100, 0, 5);
+        double weakOdds = BalanceMath.weight(3, 6, 0) / BalanceMath.weight(100, 0, 1);
+        double strongOdds = BalanceMath.weight(3, 6, 1) / BalanceMath.weight(100, 0, 5);
         check(strongOdds > weakOdds, "stronger monsters improve rare reward odds");
         check(BalanceMath.experience(10, 3, 2, 10000) == 60, "experience scaling");
         check(BalanceMath.experience(Integer.MAX_VALUE, 100, 100, 10000) == 10000, "experience overflow cap");

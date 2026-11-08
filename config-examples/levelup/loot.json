@@ -1,7 +1,5 @@
 {"tables":{
   "dimension":[
-    {"blank":true,"weight":300,"extraWeight":0},
-    {"blank":true,"weight":300,"extraWeight":0},
     {"blank":true,"weight":200,"extraWeight":0},
     {"item":"minecraft:iron_ingot","count":1,"weight":5,"extraWeight":10},
     {"item":"minecraft:gold_ingot","count":1,"weight":3,"extraWeight":6},
@@ -48,7 +46,6 @@
   "level2":
   [
     {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":100,"extraWeight":0},
     {"item":"levelhearts:heart_piece","count":1,"weight":5,"extraWeight":10},
     {"item":"levelhearts:heart_container","count":1,"weight":5,"extraWeight":10},
     {"item":"wenwen:heart_piece","count":1,"weight":5,"extraWeight":10},
@@ -58,7 +55,6 @@
   "level3":
   [
     {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":100,"extraWeight":0},
     {"item":"minecraft:enchanted_book","count":1,"weight":3,"extraWeight":6},
     {"item":"minecraft:totem_of_undying","count":1,"weight":5,"extraWeight":10},
     {"item":"friendsandfoes:totem_of_freezing","count":1,"weight":5,"extraWeight":10},
@@ -73,8 +69,6 @@
   "level4":
   [
     {"blank":true,"weight":300,"extraWeight":0},
-    {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":100,"extraWeight":0},
     {"item":"confluence:compass","count":1,"weight":5,"extraWeight":10},
     {"item":"confluence:copper_watch","count":1,"weight":5,"extraWeight":10},
     {"item":"confluence:depth_meter","count":1,"weight":5,"extraWeight":10},
@@ -240,8 +234,6 @@
   "level5":
   [
     {"blank":true,"weight":300,"extraWeight":0},
-    {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":100,"extraWeight":0},
     {"item":"ringsofascension:ring_experience","count":1,"weight":4,"extraWeight":8},
     {"item":"ringsofascension:ring_magnetism","count":1,"weight":4,"extraWeight":8},
     {"item":"ringsofascension:ring_night_vision","count":1,"weight":4,"extraWeight":8},
@@ -271,7 +263,6 @@
   "level6":
   [  
     {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":100,"extraWeight":0},
     {"item":"artifacts:eternal_steak","count":1,"weight":5,"extraWeight":10},
     {"item":"artifacts:everlasting_beef","count":1,"weight":5,"extraWeight":10},
     {"item":"artifacts:whoopee_cushion","count":1,"weight":5,"extraWeight":10},
@@ -320,8 +311,6 @@
   "level7":
   [
     {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":100,"extraWeight":0},
     {"item":"legendarysurvivaloverhaul:apple_juice","count":1,"weight":5,"extraWeight":10},
     {"item":"legendarysurvivaloverhaul:beetroot_juice","count":1,"weight":5,"extraWeight":10},
     {"item":"legendarysurvivaloverhaul:cactus_juice","count":1,"weight":5,"extraWeight":10},
@@ -389,8 +378,6 @@
   "level8":
   [
     {"blank":true,"weight":300,"extraWeight":0},
-    {"blank":true,"weight":200,"extraWeight":0},
-    {"blank":true,"weight":100,"extraWeight":0},
     {"item":"sophisticatedbackpacks:upgrade_base","count":1,"weight":4,"extraWeight":8},
     {"item":"sophisticatedbackpacks:backpack","count":1,"weight":4,"extraWeight":8},
     {"item":"sophisticatedbackpacks:copper_backpack","count":1,"weight":4,"extraWeight":8},

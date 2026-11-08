@@ -58,6 +58,9 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 repositories {
+    flatDir {
+        dirs 'lib'
+    }
     maven {
         url "https://www.cursemaven.com"
         content {
@@ -70,6 +73,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     implementation 'org.jetbrains:annotations:24.0.1'
     compileOnly fg.deobf('curse.maven:jade-324717:5876199')
+    implementation fg.deobf('local:popularbiology-1.20.1-forge:1.0')
 }
 mixin {
     add sourceSets.main, "levelup.refmap.json"

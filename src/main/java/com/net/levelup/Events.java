@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.*;
@@ -17,11 +16,11 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -32,11 +31,14 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class Events {
     static final Events INSTANCE = new Events();
     private static final String TAG = "levelup_data";
+    public static final String SPECIAL_SPAWN_TAG = "levelup_special_spawn";
+    private final Set<Mob> loadedReplacements = new HashSet<>();
     private final ServerBossEvent bar = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
     private long observedDay = Long.MIN_VALUE;
     private Rules.Day active;
@@ -47,6 +49,7 @@ public final class Events {
     private final java.util.Set<ServerPlayer> bgmUnsupported = new java.util.HashSet<>();
 
     @SubscribeEvent public void start(ServerAboutToStartEvent event) {
+        loadedReplacements.clear();
         dailyEvents.clear();
         eventHistory = null;
         observedDay = Long.MIN_VALUE;
@@ -61,6 +64,7 @@ public final class Events {
         catch (Exception e) { LevelUp.LOGGER.error("Cannot load levelup JSON; retaining previous valid rules", e); return false; }
     }
     @SubscribeEvent public void stop(ServerStoppedEvent event) {
+        loadedReplacements.clear();
         dailyEvents.clear();
         eventHistory = null;
         bar.removeAllPlayers();
@@ -92,8 +96,11 @@ public final class Events {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void join(EntityJoinLevelEvent event) {
         if (event.isCanceled() || !(event.getLevel() instanceof ServerLevel level)
-            || !(event.getEntity() instanceof Mob mob) || !(mob instanceof Enemy)) return;
+            || !(event.getEntity() instanceof Mob mob)) return;
         CompoundTag data = mob.getPersistentData();
+        if (level.dimension().equals(Level.OVERWORLD) && data.getBoolean(SPECIAL_SPAWN_TAG))
+            loadedReplacements.add(mob);
+        if (!(mob instanceof Enemy)) return;
         if (data.contains(TAG)) return;
         // Loaded legacy mobs are marked but never retroactively strengthened.
         CompoundTag record = new CompoundTag();
@@ -137,6 +144,11 @@ public final class Events {
             record.putBoolean("mobParticles", day.mobParticles());
             MobEffects.apply(mob, day.mobEffects());
         }
+    }
+    @SubscribeEvent public void leave(EntityLeaveLevelEvent event) {
+        if (event.getLevel() instanceof ServerLevel level && level.dimension().equals(Level.OVERWORLD)
+            && event.getEntity() instanceof Mob mob && mob.getPersistentData().getBoolean(SPECIAL_SPAWN_TAG))
+            loadedReplacements.remove(mob);
     }
     @SubscribeEvent public void tracking(PlayerEvent.StartTracking event) {
         if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getTarget() instanceof Mob mob)) return;
@@ -193,22 +205,20 @@ public final class Events {
         if (eventHistory == null) eventHistory = EventHistory.get(level);
         return dailyEvents.get(Rules.current, BalanceMath.day(level.getDayTime()), level.getSeed(), Settings.DAYS.get(), eventHistory);
     }
-    public static Optional<SpawnerData> selectNaturalSpawn(ServerLevel level, WeightedRandomList<SpawnerData> pool,
-                                                           RandomSource random) {
-        if (!pool.isEmpty() && level.dimension().equals(Level.OVERWORLD)) {
+    public static EntityType<?> rollNaturalSpawn(ServerLevel level, RandomSource random) {
+        if (level.dimension().equals(Level.OVERWORLD) && hasSpecialSpawnCapacity()) {
             Rules.Day day = INSTANCE.today(level);
             if (day != null && !day.spawnEntities().isEmpty()) {
                 double roll = random.nextDouble();
                 for (Rules.SpawnEntry entry : day.spawnEntities()) {
-                    if (roll >= entry.upperBound()) continue;
-                    for (SpawnerData candidate : pool.unwrap()) {
-                        if (candidate.type == entry.type()) return Optional.of(candidate);
-                    }
-                    break;
+                    if (roll < entry.upperBound()) return entry.type();
                 }
             }
         }
-        return pool.getRandom(random);
+        return null;
+    }
+    public static boolean hasSpecialSpawnCapacity() {
+        return INSTANCE.loadedReplacements.size() < Settings.SPECIAL_SPAWN_CAP.get();
     }
     @SubscribeEvent public void tick(TickEvent.LevelTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)

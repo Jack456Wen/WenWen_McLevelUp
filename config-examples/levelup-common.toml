@@ -14,6 +14,8 @@ maxExperiencePerMob = 10000
 
 [specialDays]
 enabled = true
+# 主世界已加载的特殊日替换生物总上限，0 关闭替换刷怪。
+maxLoadedSpawnReplacements = 16
 
 [freeCamera]
 # true：需要 levelup_free_camera_unlocked 标签；false：所有玩家可使用。

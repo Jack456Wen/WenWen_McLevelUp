@@ -9,6 +9,7 @@ public final class Settings {
     public static final ForgeConfigSpec.BooleanValue DAYS;
     public static final ForgeConfigSpec.BooleanValue FREE_CAMERA_REQUIRE_UNLOCK;
     public static final ForgeConfigSpec.IntValue XP_CAP;
+    public static final ForgeConfigSpec.IntValue SPECIAL_SPAWN_CAP;
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
         b.comment("血量和攻击共用随机倍率；护甲随机设置基础值，速度独立抽取增幅倍率。").push("dimensions");
@@ -23,6 +24,8 @@ public final class Settings {
         XP_CAP = b.comment("每只强化怪物的经验上限，避免极端倍率产生大量经验球。").defineInRange("maxExperiencePerMob", 10000, 0, 100000);
         b.pop().push("specialDays");
         DAYS = b.comment("特殊日详见 config/levelup/days.json，仅主世界生效。").define("enabled", true);
+        SPECIAL_SPAWN_CAP = b.comment("主世界已加载的特殊日替换生物总上限。0 关闭替换刷怪。")
+            .defineInRange("maxLoadedSpawnReplacements", 16, 0, Integer.MAX_VALUE);
         b.pop();
         b.push("freeCamera");
         FREE_CAMERA_REQUIRE_UNLOCK = b.comment("是否限制灵魂出窍；开启时玩家必须拥有 levelup_free_camera_unlocked 标签。由服务端决定，关闭后所有玩家可使用。")

@@ -17,6 +17,7 @@
             "attackEffects": [ ],
             "playerEffects": [{"effect": "legendarysurvivaloverhaul:temperature_immunity", "durationSeconds": 60, "level": 1} ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "wenwenmusic:music.pop",
             "bgmVolume": 1,
             "bgmDurationSeconds": 60
@@ -38,6 +39,7 @@
             "attackEffects": [ ],
             "playerEffects": [{"effect": "legendarysurvivaloverhaul:temperature_immunity", "durationSeconds": 60, "level": 1} ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:music.level3",
             "bgmVolume": 1,
             "bgmDurationSeconds": 100
@@ -59,6 +61,7 @@
             "attackEffects": [ ],
             "playerEffects": [{"effect": "legendarysurvivaloverhaul:hydration_fill", "durationSeconds": 60, "level": 1} ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:music.level2",
             "bgmVolume": 1,
             "bgmDurationSeconds": 100
@@ -80,6 +83,7 @@
             "attackEffects": [ ],
             "playerEffects": [{"effect": "wenwen:heal", "durationSeconds": 60, "level": 1} ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:music.level4",
             "bgmVolume": 1,
             "bgmDurationSeconds": 100
@@ -101,6 +105,7 @@
             "attackEffects": [{"effect": "legendarysurvivaloverhaul:headache", "durationSeconds": 30, "level": 1}],
             "playerEffects": [ ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:music.level2",
             "bgmVolume": 1,
             "bgmDurationSeconds": 95
@@ -122,6 +127,7 @@
             "attackEffects": [ ],
             "playerEffects": [ {"effect": "wenwen:damage", "durationSeconds": 30, "level": 1} ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:music.level7",
             "bgmVolume": 1,
             "bgmDurationSeconds": 148
@@ -143,6 +149,7 @@
             "attackEffects": [ {"effect": "wenwen:invert", "durationSeconds": 10, "level": 1} ],
             "playerEffects": [ ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:music.level6",
             "bgmVolume": 1,
             "bgmDurationSeconds": 200
@@ -164,6 +171,10 @@
             "attackEffects": [ {"effect": "wenwen:behead", "durationSeconds": 20, "level": 1} ],
             "playerEffects": [ ],
             "mobEffects": [],
+            "spawnEntities": [
+                { "id": "minecraft:husk", "probability": 0.15 },
+                { "id": "minecraft:stray", "probability": 0.05 }
+            ],
             "bgm": "levelup:music.wenwen1",
             "bgmVolume": 1,
             "bgmDurationSeconds": 104
@@ -185,6 +196,7 @@
             "attackEffects": [ ],
             "playerEffects": [ ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:music.level5",
             "bgmVolume": 1,
             "bgmDurationSeconds": 250
@@ -206,6 +218,7 @@
             "attackEffects": [ ],
             "playerEffects": [{"effect": "wenwen:chenmo", "durationSeconds": 60, "level": 1} ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "wenwen:wenwen",
             "bgmVolume": 1,
             "bgmDurationSeconds": 120
@@ -227,6 +240,7 @@
             "attackEffects": [ ],
             "playerEffects": [{"effect": "wenwen:dehp", "durationSeconds": 60, "level": 4} ],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "wenwen:wenwen4",
             "bgmVolume": 1,
             "bgmDurationSeconds": 160
@@ -248,6 +262,7 @@
             "attackEffects": [],
             "playerEffects": [],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "levelup:level3",
             "bgmVolume": 1,
             "bgmDurationSeconds": 92
@@ -269,6 +284,7 @@
             "attackEffects": [],
             "playerEffects": [],
             "mobEffects": [],
+            "spawnEntities": [],
             "bgm": "wenwen:wenwen2",
             "bgmVolume": 1,
             "bgmDurationSeconds": 100

@@ -8,6 +8,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.*;
@@ -15,6 +17,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.biome.MobSpawnSettings.SpawnerData;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -29,8 +32,10 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.Optional;
 
 public final class Events {
+    static final Events INSTANCE = new Events();
     private static final String TAG = "levelup_data";
     private final ServerBossEvent bar = new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
     private long observedDay = Long.MIN_VALUE;
@@ -187,6 +192,23 @@ public final class Events {
     private Rules.Day today(ServerLevel level) {
         if (eventHistory == null) eventHistory = EventHistory.get(level);
         return dailyEvents.get(Rules.current, BalanceMath.day(level.getDayTime()), level.getSeed(), Settings.DAYS.get(), eventHistory);
+    }
+    public static Optional<SpawnerData> selectNaturalSpawn(ServerLevel level, WeightedRandomList<SpawnerData> pool,
+                                                           RandomSource random) {
+        if (!pool.isEmpty() && level.dimension().equals(Level.OVERWORLD)) {
+            Rules.Day day = INSTANCE.today(level);
+            if (day != null && !day.spawnEntities().isEmpty()) {
+                double roll = random.nextDouble();
+                for (Rules.SpawnEntry entry : day.spawnEntities()) {
+                    if (roll >= entry.upperBound()) continue;
+                    for (SpawnerData candidate : pool.unwrap()) {
+                        if (candidate.type == entry.type()) return Optional.of(candidate);
+                    }
+                    break;
+                }
+            }
+        }
+        return pool.getRandom(random);
     }
     @SubscribeEvent public void tick(TickEvent.LevelTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)

@@ -2,12 +2,14 @@ package com.net.levelup;
 
 import com.google.gson.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.util.RandomSource;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -18,13 +20,14 @@ public final class Rules {
                       double health, double attack, double speed, double armor, String loot, double experienceMultiplier,
                       List<AttackEffects.Entry> attackEffects, List<AttackEffects.Entry> playerEffects, EventBgm bgm,
                       net.minecraft.world.BossEvent.BossBarColor bossBarColor, boolean mobParticles,
-                      List<AttackEffects.Entry> mobEffects) {
+                      List<AttackEffects.Entry> mobEffects, List<SpawnEntry> spawnEntities) {
         // Stable across reordering and changes to probability/effects; these three fields identify an event.
         String historyKey() {
             return UUID.nameUUIDFromBytes((day + "\u0000" + title + "\u0000" + loot)
                 .getBytes(StandardCharsets.UTF_8)).toString();
         }
     }
+    public record SpawnEntry(EntityType<?> type, double upperBound) {}
     public record Entry(Item item, int count, double weight, double extraWeight) {}
     public record Snapshot(List<Day> days, Map<String, List<Entry>> tables) {}
     public static volatile Snapshot current = new Snapshot(List.of(), Map.of());
@@ -81,9 +84,37 @@ public final class Rules {
                 multiplier(d,"healthMultiplier"), multiplier(d,"attackMultiplier"),
                 multiplier(d,"speedMultiplier"), number(d,"armor",0,0,1000), table,
                 number(d,"experienceMultiplier",1,0,100), AttackEffects.parse(d), PlayerEffects.parse(d), EventBgm.parse(d),
-                bossBarColor(d), mobParticles(d), MobEffects.parse(d)));
+                bossBarColor(d), mobParticles(d), MobEffects.parse(d), spawnEntities(d)));
         }
         current = new Snapshot(List.copyOf(days), Map.copyOf(tables));
+    }
+    private static List<SpawnEntry> spawnEntities(JsonObject day) {
+        JsonElement value = day.get("spawnEntities");
+        if (value == null || value.isJsonNull()) return List.of();
+        if (!value.isJsonArray()) throw new IllegalArgumentException("spawnEntities must be an array");
+        List<SpawnEntry> entries = new ArrayList<>();
+        Set<ResourceLocation> ids = new HashSet<>();
+        BigDecimal total = BigDecimal.ZERO;
+        for (JsonElement element : value.getAsJsonArray()) {
+            JsonObject entry = element.getAsJsonObject();
+            JsonElement idValue = entry.get("id");
+            if (idValue == null || !idValue.isJsonPrimitive() || !idValue.getAsJsonPrimitive().isString())
+                throw new IllegalArgumentException("spawnEntities.id must be an entity ID");
+            ResourceLocation id = ResourceLocation.tryParse(idValue.getAsString());
+            if (id == null || !ForgeRegistries.ENTITY_TYPES.containsKey(id))
+                throw new IllegalArgumentException("Unknown spawn entity: " + idValue);
+            if (!ids.add(id)) throw new IllegalArgumentException("Duplicate spawn entity: " + id);
+            JsonElement probability = entry.get("probability");
+            if (probability == null || !probability.isJsonPrimitive() || !probability.getAsJsonPrimitive().isNumber())
+                throw new IllegalArgumentException("spawnEntities.probability must be a number between 0 and 1");
+            BigDecimal chance = probability.getAsBigDecimal();
+            if (chance.signum() < 0) throw new IllegalArgumentException("Negative spawn probability for " + id);
+            total = total.add(chance);
+            if (total.compareTo(BigDecimal.ONE) > 0)
+                throw new IllegalArgumentException("Total spawnEntities probability must not exceed 1");
+            if (chance.signum() > 0) entries.add(new SpawnEntry(ForgeRegistries.ENTITY_TYPES.getValue(id), total.doubleValue()));
+        }
+        return List.copyOf(entries);
     }
     static int maxOccurrences(JsonObject day) {
         if (!day.has("maxOccurrences")) return -1;

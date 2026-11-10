@@ -81,7 +81,7 @@ final class OnceEventCheck {
 
     private static Rules.Day event(int maxOccurrences, String title) {
         return new Rules.Day(30, 1, maxOccurrences, title, title, 1, 1, 1, 0, "wenwen", 1,
-            List.of(), List.of(), new EventBgm(null, 1, 180), net.minecraft.world.BossEvent.BossBarColor.RED, true, List.of());
+            List.of(), List.of(), new EventBgm(null, 1, 180), net.minecraft.world.BossEvent.BossBarColor.RED, true, List.of(), List.of());
     }
     private static Rules.Snapshot rules(Rules.Day... events) {
         return new Rules.Snapshot(List.of(events), Map.of());

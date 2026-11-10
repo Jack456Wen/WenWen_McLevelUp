@@ -16,6 +16,6 @@ public final class LevelUp {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, HudSettings.SPEC);
         VisualParticles.TYPES.register(net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext.get().getModEventBus());
         Network.register();
-        MinecraftForge.EVENT_BUS.register(new Events());
+        MinecraftForge.EVENT_BUS.register(Events.INSTANCE);
     }
 }
